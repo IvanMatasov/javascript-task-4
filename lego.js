@@ -32,10 +32,7 @@ exports.query = function (collection) {
         return collection;
     }
 
-    var duplicateCollection = collection.map(function (objectValue) {
-        return Object.assign({}, objectValue);
-    });
-
+    var duplicateCollection = JSON.parse(JSON.stringify(collection));
 
     for (var i = 0; i < func.length; i++) {
         duplicateCollection = func[i](duplicateCollection);
