@@ -89,16 +89,12 @@ exports.filterIn = function (property, values) {
  */
 exports.sortBy = function (property, order) {
     return function sortBy(collection) {
-        if (order === 'asc') {
-            return collection.sort(function (a, b) {
-                return a[property] - b[property];
-            });
-        }
-        if (order === 'desc') {
-            return collection.sort(function (a, b) {
-                return b[property] - a[property];
-            });
-        }
+        return collection.sort(function (a, b) {
+            var compare = a[property] > b[property] ? 1 : -1;
+            var result = order === 'asc' ? compare : -compare;
+
+            return result;
+        });
     };
 };
 
