@@ -18,6 +18,17 @@ function sortByPriority(a, b) {
     return functionPriority[a.name] - functionPriority[b.name];
 }
 
+function comparator(a, b, prop) {
+    if (a[prop] > b[prop]) {
+        return 1;
+    }
+    if (a[prop] < b[prop]) {
+        return -1;
+    }
+
+    return 0;
+}
+
 /**
  * Запрос к коллекции
  * @param {Array} collection
@@ -25,18 +36,20 @@ function sortByPriority(a, b) {
  * @returns {Array}
  */
 exports.query = function (collection) {
-    var func = [].slice.call(arguments, 1);
+    var func = [].slice.call(arguments);
     func.sort(sortByPriority);
 
-    if (func.length === 0) {
+    if (!func.length) {
         return collection;
     }
 
     var duplicateCollection = JSON.parse(JSON.stringify(collection));
 
-    for (var i = 0; i < func.length; i++) {
-        duplicateCollection = func[i](duplicateCollection);
-    }
+    func.reduce(function (prev, value) {
+        duplicateCollection = value(duplicateCollection);
+
+        return duplicateCollection;
+    });
 
     return duplicateCollection;
 };
@@ -50,11 +63,13 @@ exports.select = function () {
     var args = [].slice.call(arguments);
 
     return function select(collection) {
+        var record;
+
         return collection.map(function (objectValue) {
+            record = objectValue;
+
             return args.filter(function (value) {
-
-                return value in objectValue;
-
+                return value in record;
             }).reduce(function (prev, value) {
                 prev[value] = objectValue[value];
 
@@ -74,9 +89,7 @@ exports.select = function () {
 exports.filterIn = function (property, values) {
     return function filterIn(collection) {
         return collection.filter(function (objectValues) {
-
             return values.indexOf(objectValues[property]) !== -1;
-
         });
     };
 };
@@ -90,7 +103,7 @@ exports.filterIn = function (property, values) {
 exports.sortBy = function (property, order) {
     return function sortBy(collection) {
         return collection.sort(function (a, b) {
-            var compare = a[property] > b[property] ? 1 : -1;
+            var compare = comparator(a, b, property);
             var result = order === 'asc' ? compare : -compare;
 
             return result;
@@ -106,12 +119,8 @@ exports.sortBy = function (property, order) {
  */
 exports.format = function (property, formatter) {
     return function format(collection) {
-        var duplicateCollection = Object.assign(collection);
-
-        return duplicateCollection.map(function (objectValue) {
-
+        return collection.map(function (objectValue) {
             if (objectValue.hasOwnProperty(property)) {
-
                 objectValue[property] = formatter(objectValue[property]);
             }
 
