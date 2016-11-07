@@ -11,7 +11,7 @@ var functionPriority = {
     filterIn: 0,
     sortBy: 0,
     limit: 2,
-    format: 2
+    format: 3
 };
 
 function sortByPriority(a, b) {
@@ -43,15 +43,14 @@ exports.query = function (collection) {
         return collection;
     }
 
-    var duplicateCollection = JSON.parse(JSON.stringify(collection));
-
-    func.reduce(function (prev, value) {
-        duplicateCollection = value(duplicateCollection);
-
-        return duplicateCollection;
+    var duplicateCollection = collection.map(function (objectValue) {
+        return Object.assign({}, objectValue);
     });
 
-    return duplicateCollection;
+    return func.reduce(function (prev, value) {
+        return (duplicateCollection = value(duplicateCollection));
+    });
+
 };
 
 /**
@@ -63,15 +62,11 @@ exports.select = function () {
     var args = [].slice.call(arguments);
 
     return function select(collection) {
-        var record;
-
-        return collection.map(function (objectValue) {
-            record = objectValue;
-
+        return collection.map(function (record) {
             return args.filter(function (value) {
                 return value in record;
             }).reduce(function (prev, value) {
-                prev[value] = objectValue[value];
+                prev[value] = record[value];
 
                 return prev;
             }, {});
