@@ -43,8 +43,8 @@ exports.query = function (collection) {
         return collection;
     }
 
-    var duplicateCollection = collection.map(function (objectValue) {
-        return Object.assign({}, objectValue);
+    var duplicateCollection = collection.map(function (record) {
+        return record;
     });
 
     return func.reduce(function (prev, value) {
